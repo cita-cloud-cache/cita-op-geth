@@ -146,9 +146,9 @@ func (ec *Client) getBlock(ctx context.Context, method string, args ...interface
 	if head.TxHash == types.EmptyTxsHash && len(body.Transactions) > 0 {
 		return nil, errors.New("server returned non-empty transaction list but block header indicates no transactions")
 	}
-	if head.TxHash != types.EmptyTxsHash && len(body.Transactions) == 0 {
-		return nil, errors.New("server returned empty transaction list but block header indicates transactions")
-	}
+	// if head.TxHash != types.EmptyTxsHash && len(body.Transactions) == 0 {
+	// 	return nil, errors.New("server returned empty transaction list but block header indicates transactions")
+	// }
 	// Load uncles because they are not included in the block response.
 	var uncles []*types.Header
 	if len(body.UncleHashes) > 0 {
@@ -586,6 +586,19 @@ func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) er
 		return err
 	}
 	return ec.c.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(data))
+}
+
+func (ec *Client) SendTransactionWithReturn(ctx context.Context, tx *types.Transaction) (string, error) {
+	data, err := tx.MarshalBinary()
+	if err != nil {
+		return "", err
+	}
+	var txHash string
+	err = ec.c.CallContext(ctx, &txHash, "eth_sendRawTransaction", hexutil.Encode(data))
+	if err != nil {
+		return "", err
+	}
+	return txHash, nil
 }
 
 func toBlockNumArg(number *big.Int) string {

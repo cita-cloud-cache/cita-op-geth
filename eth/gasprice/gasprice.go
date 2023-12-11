@@ -165,83 +165,83 @@ func NewOracle(backend OracleBackend, params Config) *Oracle {
 // necessary to add the basefee to the returned number to fall back to the legacy
 // behavior.
 func (oracle *Oracle) SuggestTipCap(ctx context.Context) (*big.Int, error) {
-	head, _ := oracle.backend.HeaderByNumber(ctx, rpc.LatestBlockNumber)
-	headHash := head.Hash()
+	// head, _ := oracle.backend.HeaderByNumber(ctx, rpc.LatestBlockNumber)
+	// headHash := head.Hash()
 
-	// If the latest gasprice is still available, return it.
-	oracle.cacheLock.RLock()
-	lastHead, lastPrice := oracle.lastHead, oracle.lastPrice
-	oracle.cacheLock.RUnlock()
-	if headHash == lastHead {
-		return new(big.Int).Set(lastPrice), nil
-	}
-	oracle.fetchLock.Lock()
-	defer oracle.fetchLock.Unlock()
+	// // If the latest gasprice is still available, return it.
+	// oracle.cacheLock.RLock()
+	// lastHead, lastPrice := oracle.lastHead, oracle.lastPrice
+	// oracle.cacheLock.RUnlock()
+	// if headHash == lastHead {
+	// 	return new(big.Int).Set(lastPrice), nil
+	// }
+	// oracle.fetchLock.Lock()
+	// defer oracle.fetchLock.Unlock()
 
-	// Try checking the cache again, maybe the last fetch fetched what we need
-	oracle.cacheLock.RLock()
-	lastHead, lastPrice = oracle.lastHead, oracle.lastPrice
-	oracle.cacheLock.RUnlock()
-	if headHash == lastHead {
-		return new(big.Int).Set(lastPrice), nil
-	}
+	// // Try checking the cache again, maybe the last fetch fetched what we need
+	// oracle.cacheLock.RLock()
+	// lastHead, lastPrice = oracle.lastHead, oracle.lastPrice
+	// oracle.cacheLock.RUnlock()
+	// if headHash == lastHead {
+	// 	return new(big.Int).Set(lastPrice), nil
+	// }
 
-	if oracle.backend.ChainConfig().IsOptimism() {
-		return oracle.SuggestOptimismPriorityFee(ctx, head, headHash), nil
-	}
+	// if oracle.backend.ChainConfig().IsOptimism() {
+	// 	return oracle.SuggestOptimismPriorityFee(ctx, head, headHash), nil
+	// }
 
-	var (
-		sent, exp int
-		number    = head.Number.Uint64()
-		result    = make(chan results, oracle.checkBlocks)
-		quit      = make(chan struct{})
-		results   []*big.Int
-	)
-	for sent < oracle.checkBlocks && number > 0 {
-		go oracle.getBlockValues(ctx, number, sampleNumber, oracle.ignorePrice, result, quit)
-		sent++
-		exp++
-		number--
-	}
-	for exp > 0 {
-		res := <-result
-		if res.err != nil {
-			close(quit)
-			return new(big.Int).Set(lastPrice), res.err
-		}
-		exp--
-		// Nothing returned. There are two special cases here:
-		// - The block is empty
-		// - All the transactions included are sent by the miner itself.
-		// In these cases, use the latest calculated price for sampling.
-		if len(res.values) == 0 {
-			res.values = []*big.Int{lastPrice}
-		}
-		// Besides, in order to collect enough data for sampling, if nothing
-		// meaningful returned, try to query more blocks. But the maximum
-		// is 2*checkBlocks.
-		if len(res.values) == 1 && len(results)+1+exp < oracle.checkBlocks*2 && number > 0 {
-			go oracle.getBlockValues(ctx, number, sampleNumber, oracle.ignorePrice, result, quit)
-			sent++
-			exp++
-			number--
-		}
-		results = append(results, res.values...)
-	}
-	price := lastPrice
-	if len(results) > 0 {
-		sort.Sort(bigIntArray(results))
-		price = results[(len(results)-1)*oracle.percentile/100]
-	}
-	if price.Cmp(oracle.maxPrice) > 0 {
-		price = new(big.Int).Set(oracle.maxPrice)
-	}
-	oracle.cacheLock.Lock()
-	oracle.lastHead = headHash
-	oracle.lastPrice = price
-	oracle.cacheLock.Unlock()
+	// var (
+	// 	sent, exp int
+	// 	number    = head.Number.Uint64()
+	// 	result    = make(chan results, oracle.checkBlocks)
+	// 	quit      = make(chan struct{})
+	// 	results   []*big.Int
+	// )
+	// for sent < oracle.checkBlocks && number > 0 {
+	// 	go oracle.getBlockValues(ctx, number, sampleNumber, oracle.ignorePrice, result, quit)
+	// 	sent++
+	// 	exp++
+	// 	number--
+	// }
+	// for exp > 0 {
+	// 	res := <-result
+	// 	if res.err != nil {
+	// 		close(quit)
+	// 		return new(big.Int).Set(lastPrice), res.err
+	// 	}
+	// 	exp--
+	// 	// Nothing returned. There are two special cases here:
+	// 	// - The block is empty
+	// 	// - All the transactions included are sent by the miner itself.
+	// 	// In these cases, use the latest calculated price for sampling.
+	// 	if len(res.values) == 0 {
+	// 		res.values = []*big.Int{lastPrice}
+	// 	}
+	// 	// Besides, in order to collect enough data for sampling, if nothing
+	// 	// meaningful returned, try to query more blocks. But the maximum
+	// 	// is 2*checkBlocks.
+	// 	if len(res.values) == 1 && len(results)+1+exp < oracle.checkBlocks*2 && number > 0 {
+	// 		go oracle.getBlockValues(ctx, number, sampleNumber, oracle.ignorePrice, result, quit)
+	// 		sent++
+	// 		exp++
+	// 		number--
+	// 	}
+	// 	results = append(results, res.values...)
+	// }
+	// price := lastPrice
+	// if len(results) > 0 {
+	// 	sort.Sort(bigIntArray(results))
+	// 	price = results[(len(results)-1)*oracle.percentile/100]
+	// }
+	// if price.Cmp(oracle.maxPrice) > 0 {
+	// 	price = new(big.Int).Set(oracle.maxPrice)
+	// }
+	// oracle.cacheLock.Lock()
+	// oracle.lastHead = headHash
+	// oracle.lastPrice = price
+	// oracle.cacheLock.Unlock()
 
-	return new(big.Int).Set(price), nil
+	return big.NewInt(0), nil
 }
 
 type results struct {

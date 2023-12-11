@@ -185,12 +185,12 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			return errors.New("missing required field 's' in transaction")
 		}
 		itx.S = (*big.Int)(dec.S)
-		withSignature := itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0
-		if withSignature {
-			if err := sanityCheckSignature(itx.V, itx.R, itx.S, true); err != nil {
-				return err
-			}
-		}
+		// withSignature := itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0
+		// if withSignature {
+		// 	if err := sanityCheckSignature(itx.V, itx.R, itx.S, true); err != nil {
+		// 		return err
+		// 	}
+		// }
 
 	case AccessListTxType:
 		var itx AccessListTx
@@ -237,12 +237,12 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			return errors.New("missing required field 's' in transaction")
 		}
 		itx.S = (*big.Int)(dec.S)
-		withSignature := itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0
-		if withSignature {
-			if err := sanityCheckSignature(itx.V, itx.R, itx.S, false); err != nil {
-				return err
-			}
-		}
+		// withSignature := itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0
+		// if withSignature {
+		// 	if err := sanityCheckSignature(itx.V, itx.R, itx.S, false); err != nil {
+		// 		return err
+		// 	}
+		// }
 
 	case DynamicFeeTxType:
 		var itx DynamicFeeTx
@@ -293,12 +293,12 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			return errors.New("missing required field 's' in transaction")
 		}
 		itx.S = (*big.Int)(dec.S)
-		withSignature := itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0
-		if withSignature {
-			if err := sanityCheckSignature(itx.V, itx.R, itx.S, false); err != nil {
-				return err
-			}
-		}
+		// withSignature := itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0
+		// if withSignature {
+		// 	if err := sanityCheckSignature(itx.V, itx.R, itx.S, false); err != nil {
+		// 		return err
+		// 	}
+		// }
 
 	case BlobTxType:
 		var itx BlobTx
@@ -357,12 +357,12 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 			return errors.New("missing required field 's' in transaction")
 		}
 		itx.S = uint256.MustFromBig((*big.Int)(dec.S))
-		withSignature := itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0
-		if withSignature {
-			if err := sanityCheckSignature(itx.V.ToBig(), itx.R.ToBig(), itx.S.ToBig(), false); err != nil {
-				return err
-			}
-		}
+		// withSignature := itx.V.Sign() != 0 || itx.R.Sign() != 0 || itx.S.Sign() != 0
+		// if withSignature {
+		// 	if err := sanityCheckSignature(itx.V.ToBig(), itx.R.ToBig(), itx.S.ToBig(), false); err != nil {
+		// 		return err
+		// 	}
+		// }
 
 	case DepositTxType:
 		if dec.AccessList != nil || dec.MaxFeePerGas != nil ||
@@ -418,6 +418,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 
 	// Now set the inner transaction.
 	tx.setDecoded(inner, 0)
+	tx.SetHash(dec.Hash)
 
 	// TODO: check hash here?
 	return nil

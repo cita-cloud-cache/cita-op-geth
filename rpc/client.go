@@ -346,7 +346,7 @@ func (c *Client) CallContext(ctx context.Context, result interface{}, method str
 		return ErrNoResult
 	default:
 		if result == nil {
-			return nil
+		return nil
 		}
 		return json.Unmarshal(resp.Result, result)
 	}

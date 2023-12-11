@@ -437,6 +437,11 @@ func (b *Block) Hash() common.Hash {
 	return v
 }
 
+func (b *Block) SetHash(h common.Hash) common.Hash {
+	b.hash.Store(h)
+	return h
+}
+
 type Blocks []*Block
 
 // HeaderParentHashFromRLP returns the parentHash of an RLP-encoded

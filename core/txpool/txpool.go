@@ -213,8 +213,8 @@ func (config *Config) sanitize() Config {
 		conf.Rejournal = time.Second
 	}
 	if conf.PriceLimit < 1 {
-		log.Warn("Sanitizing invalid txpool price limit", "provided", conf.PriceLimit, "updated", DefaultConfig.PriceLimit)
-		conf.PriceLimit = DefaultConfig.PriceLimit
+		log.Warn("Sanitizing invalid txpool price limit", "provided", conf.PriceLimit, "updated", 0)
+		conf.PriceLimit = 0
 	}
 	if conf.PriceBump < 1 {
 		log.Warn("Sanitizing invalid txpool price bump", "provided", conf.PriceBump, "updated", DefaultConfig.PriceBump)
@@ -712,7 +712,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	balance := pool.currentState.GetBalance(from)
 	if balance.Cmp(cost) < 0 {
-		return core.ErrInsufficientFunds
+		// return core.ErrInsufficientFunds
+		return fmt.Errorf("%w: have %v, but want %v", core.ErrInsufficientFunds, balance, cost)
 	}
 
 	// Verify that replacing transactions will not result in overdraft
